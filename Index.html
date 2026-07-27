@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#8A9A5B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Segunda Hoja</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --crema: #F5F0E1;
+    --beige: #E8DCC4;
+    --verde: #8A9A5B;
+    --verde-oscuro: #6B7B3E;
+    --verde-claro: #C8E6C9;
+    --dorado: #D4A017;
+    --naranja: #E8954A;
+    --marron: #3E2723;
+    --marron-claro: #5D4037;
+    --blanco: #FFFFFF;
+    --gris: #9E9E9E;
+    --gris-claro: #F0F0F0;
+    --rojo: #E53935;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Montserrat', sans-serif; background: #d4cdb8; }
+  .sh-app {
+    max-width: 420px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--crema);
+    position: relative;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
+  .sh-screen { display: none; animation: fadeIn 0.35s ease; min-height: 100vh; }
+  .sh-screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* === TOAST === */
+  .sh-toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-120px);
+    background: var(--marron); color: white; padding: 12px 20px; border-radius: 12px;
+    font-size: 13px; font-weight: 600; z-index: 1000; transition: transform 0.35s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); max-width: 90%; text-align: center;
+  }
+  .sh-toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* === NAV BAR === */
+  .sh-nav-bar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 420px; background: var(--blanco);
+    border-top: 1px solid var(--beige); display: flex; justify-content: space-around;
+    padding: 8px 0 20px; z-index: 100;
+  }
+  .sh-nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: none; border: none; cursor: pointer; color: var(--gris);
+    font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 600;
+    transition: color 0.2s; padding: 4px 8px;
+  }
+  .sh-nav-item.active { color: var(--verde); }
+  .sh-nav-item .nav-icon { font-size: 22px; }
+
+  /* === ONBOARDING === */
+  .sh-onboarding { background: var(--verde); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px 32px; text-align: center; }
+  .sh-onboarding .logo-big { font-size: 80px; margin-bottom: 20px; }
+  .sh-onboarding h1 { color: white; font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+  .sh-onboarding p { color: rgba(255,255,255,0.9); font-size: 15px; line-height: 1.6; margin-bottom: 40px; }
+  .sh-dots { display: flex; gap: 8px; margin-bottom: 32px; }
+  .sh-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; }
+  .sh-dot.active { background: white; width: 24px; border-radius: 4px; }
+  .sh-btn-white { width: 100%; background: white; color: var(--verde); border: none; border-radius: 14px; padding: 16px; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+  .sh-btn-transparent { background: none; border: 2px solid rgba(255,255,255,0.5); color: white; border-radius: 14px; padding: 14px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 12px; width: 100%; }
+
+  /* === LANDING === */
+  .sh-landing-hero { background: var(--verde); padding: 32px 24px 48px; border-radius: 0 0 32px 32px; text-align: center; position: relative; overflow: hidden; }
+  .sh-landing-hero::before { content: '🌿'; position: absolute; font-size: 200px; opacity: 0.06; top: -30px; right: -40px; }
+  .sh-landing-logo { font-size: 48px; margin-bottom: 8px; }
+  .sh-landing-hero h1 { color: white; font-size: 26px; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
+  .sh-landing-hero p { color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500; line-height: 1.5; }
+  .sh-landing-stats { display: flex; justify-content: center; gap: 10px; margin-top: -28px; padding: 0 16px; position: relative; z-index: 2; }
+  .sh-stat-card { background: white; border-radius: 16px; padding: 14px 8px; text-align: center; box-shadow: 0 4px 16px rgba(62,39,35,0.1); flex: 1; }
+  .sh-stat-card .num { font-size: 20px; font-weight: 800; color: var(--verde); display: block; }
+  .sh-stat-card .lbl { font-size: 9px; color: var(--gris); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sh-landing-body { padding: 24px 20px; }
+  .sh-section-title { font-size: 18px; font-weight: 700; color: var(--marron); margin-bottom: 16px; }
+  .sh-section-subtitle { font-size: 13px; color: var(--gris); margin-bottom: 16px; margin-top: -12px; }
+  .sh-feature-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .sh-feature-item { background: white; border-radius: 14px; padding: 16px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .sh-feature-icon { width: 44px; height: 44px; background: var(--beige); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .sh-feature-text h4 { font-size: 13px; font-weight: 700; color: var(--marron); margin-bottom: 2px; }
+  .sh-feature-text p { font-size: 12px; color: var(--gris); line-height: 1.4; }
+  .sh-btn-primary { width: 100%; background: var(--verde); color: white; border: none; border-radius: 14px; padding: 16px; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(138,154,91,0.3); margin-bottom: 10px; }
+  .sh-btn-primary:hover { background: var(--verde-oscuro); transform: translateY(-2px); }
+  .sh-btn-secondary { width: 100%; background: transparent; color: var(--verde); border: 2px solid var(--verde); border-radius: 14px; padding: 14px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .sh-btn-secondary:hover { background: var(--verde); color: white; }
+  .sh-btn-small { background: var(--dorado); color: var(--marron); border: none; border-radius: 10px; padding: 10px 16px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .sh-btn-small:hover { background: #E5B12A; }
+  .sh-btn-outline-small { background: none; border: 2px solid var(--verde); color: var(--verde); border-radius: 10px; padding: 8px 14px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+  /* === SIMULADOR === */
+  .sh-sim-container { background: white; border-radius: 18px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+  .sh-sim-label { font-size: 12px; font-weight: 700; color: var(--marron); margin-bottom: 8px; display: block; }
+  .sh-slider-container { margin-bottom: 16px; }
+  .sh-slider { width: 100%; -webkit-appearance: none; height: 8px; border-radius: 4px; background: var(--beige); outline: none; }
+  .sh-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--verde); cursor: pointer; box-shadow: 0 2px 8px rgba(138,154,91,0.4); }
+  .sh-slider-value { text-align: center; font-size: 28px; font-weight: 800; color: var(--verde); margin: 8px 0; }
+  .sh-slider-desc { text-align: center; font-size: 12px; color: var(--gris); }
+  .sh-sim-result { background: var(--verde); border-radius: 14px; padding: 20px; color: white; text-align: center; margin-top: 16px; }
+  .sh-sim-result .price { font-size: 32px; font-weight: 800; }
+  .sh-sim-result .period { font-size: 13px; opacity: 0.9; }
+  .sh-sim-result .saving { font-size: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); }
+
+  /* === REGISTRO === */
+  .sh-reg-header { background: var(--verde); padding: 20px 24px; color: white; }
+  .sh-back-btn { background: none; border: none; color: white; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-family: 'Montserrat', sans-serif; }
+  .sh-reg-header h2 { font-size: 22px; font-weight: 800; }
+  .sh-reg-header p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+  .sh-reg-body { padding: 24px; }
+  .sh-form-group { margin-bottom: 18px; }
+  .sh-form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--marron); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sh-form-group input, .sh-form-group select { width: 100%; padding: 14px 16px; border: 2px solid var(--beige); border-radius: 12px; font-family: 'Montserrat', sans-serif; font-size: 14px; background: white; color: var(--marron); outline: none; transition: border-color 0.2s; }
+  .sh-form-group input:focus, .sh-form-group select:focus { border-color: var(--verde); }
+  .sh-plan-selector { display: flex; gap: 8px; margin-bottom: 20px; }
+  .sh-plan-option { flex: 1; background: white; border: 2px solid var(--beige); border-radius: 14px; padding: 14px 6px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .sh-plan-option.selected { border-color: var(--verde); background: rgba(138,154,91,0.08); }
+  .sh-plan-option .plan-name { font-size: 10px; font-weight: 700; color: var(--marron); display: block; }
+  .sh-plan-option .plan-price { font-size: 16px; font-weight: 800; color: var(--verde); display: block; margin: 4px 0; }
+  .sh-plan-option .plan-desc { font-size: 9px; color: var(--gris); }
+
+  /* === DASHBOARD === */
+  .sh-dash-header { background: var(--verde); padding: 20px 24px 40px; color: white; position: relative; }
+  .sh-dash-header::after { content: ''; position: absolute; bottom: -20px; left: 0; right: 0; height: 40px; background: var(--crema); border-radius: 24px 24px 0 0; }
+  .sh-dash-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .sh-dash-top h2 { font-size: 20px; font-weight: 800; }
+  .sh-dash-avatar { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .sh-dash-welcome { font-size: 14px; opacity: 0.95; line-height: 1.4; }
+  .sh-dash-welcome strong { font-weight: 700; }
+  .sh-dash-body { padding: 0 20px 24px; position: relative; z-index: 2; }
+  .sh-next-pickup { background: white; border-radius: 18px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border-left: 4px solid var(--dorado); }
+  .sh-next-pickup .label { font-size: 11px; font-weight: 700; color: var(--dorado); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .sh-next-pickup .date { font-size: 20px; font-weight: 800; color: var(--marron); margin-bottom: 4px; }
+  .sh-next-pickup .sub { font-size: 12px; color: var(--gris); }
+  .sh-ia-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(138,154,91,0.1); color: var(--verde); padding: 4px 10px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-top: 8px; }
+  .sh-impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .sh-impact-card { background: white; border-radius: 16px; padding: 16px 10px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+  .sh-impact-card .icon { font-size: 24px; margin-bottom: 6px; }
+  .sh-impact-card .value { font-size: 22px; font-weight: 800; color: var(--marron); line-height: 1; }
+  .sh-impact-card .unit { font-size: 11px; font-weight: 600; color: var(--gris); margin-bottom: 2px; }
+  .sh-impact-card .desc { font-size: 10px; color: var(--gris); font-weight: 500; }
+  .sh-impact-card.full-width { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 16px 20px; }
+  .sh-impact-card.full-width .left { display: flex; align-items: center; gap: 12px; }
+  .sh-impact-card.full-width .icon { font-size: 28px; margin: 0; }
+  .sh-cert-card { background: var(--marron); border-radius: 18px; padding: 20px; color: white; margin-bottom: 20px; position: relative; overflow: hidden; }
+  .sh-cert-card::before { content: '📜'; position: absolute; font-size: 80px; opacity: 0.06; right: -10px; top: -10px; }
+  .sh-cert-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; position: relative; }
+  .sh-cert-card p { font-size: 12px; opacity: 0.85; line-height: 1.4; margin-bottom: 14px; position: relative; }
+  .sh-history-title { font-size: 14px; font-weight: 700; color: var(--marron); margin-bottom: 12px; }
+  .sh-history-list { display: flex; flex-direction: column; gap: 8px; }
+  .sh-history-item { background: white; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 6px rgba(0,0,0,0.03); }
+  .sh-history-item .info h5 { font-size: 12px; font-weight: 700; color: var(--marron); margin-bottom: 2px; }
+  .sh-history-item .info span { font-size: 11px; color: var(--gris); }
+  .sh-badge-green { background: rgba(76,175,80,0.12); color: #2E7D32; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+  .sh-badge-blue { background: rgba(33,150,243,0.12); color: #1565C0; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+
+  /* === ALIADOS === */
+  .sh-aliados-list { display: flex; flex-direction: column; gap: 12px; }
+  .sh-aliado-card { background: white; border-radius: 16px; padding: 16px; display: flex; gap: 14px; align-items: flex-start; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+  .sh-aliado-avatar { width: 50px; height: 50px; background: var(--beige); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .sh-aliado-info h4 { font-size: 14px; font-weight: 700; color: var(--marron); margin-bottom: 2px; }
+  .sh-aliado-info p { font-size: 12px; color: var(--gris); line-height: 1.4; }
+  .sh-aliado-info .tag { display: inline-block; background: var(--verde-claro); color: var(--verde-oscuro); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; margin-top: 6px; }
+
+  /* === CHAT === */
+  .sh-chat-header { background: var(--verde); padding: 16px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 3px solid var(--dorado); flex-shrink: 0; }
+  .sh-chat-avatar { width: 40px; height: 40px; background: var(--blanco); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid var(--dorado); }
+  .sh-chat-info h3 { margin: 0; color: white; font-size: 15px; font-weight: 800; }
+  .sh-chat-info p { margin: 2px 0 0 0; color: #E8DCC4; font-size: 11px; font-weight: 600; }
+  .sh-chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .sh-message { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.5; animation: fadeIn 0.3s ease; }
+  .sh-message-bot { background: white; color: var(--marron); align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid var(--verde); }
+  .sh-message-user { background: var(--marron); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .sh-message-bot strong { color: var(--verde); }
+  .sh-typing { display: flex; gap: 4px; padding: 12px 14px; background: white; border-radius: 14px; border-bottom-left-radius: 4px; align-self: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.06); width: 56px; }
+  .sh-typing-dot { width: 8px; height: 8px; background: var(--verde); border-radius: 50%; animation: typingBounce 1.4s infinite ease-in-out both; }
+  .sh-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+  .sh-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes typingBounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+  .sh-chat-input-area { padding: 10px 16px 16px; background: white; border-top: 1px solid var(--beige); display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+  .sh-chat-input { flex: 1; border: 2px solid var(--beige); border-radius: 24px; padding: 10px 14px; font-family: 'Montserrat', sans-serif; font-size: 13px; background: var(--crema); color: var(--marron); outline: none; }
+  .sh-chat-input:focus { border-color: var(--verde); }
+  .sh-send-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--verde); border: none; color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sh-chat-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 10px; flex-shrink: 0; }
+  .sh-chat-quick-btn { background: var(--beige); border: 1px solid var(--verde); color: var(--marron); padding: 5px 10px; border-radius: 14px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; }
+
+  /* === INVERSOR === */
+  .sh-invest-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+  .sh-invest-card h4 { font-size: 13px; font-weight: 700; color: var(--marron); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .sh-metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--beige); }
+  .sh-metric-row:last-child { border-bottom: none; }
+  .sh-metric-row .label { font-size: 13px; color: var(--gris); }
+  .sh-metric-row .value { font-size: 16px; font-weight: 700; color: var(--marron); }
+  .sh-metric-row .value.positive { color: #2E7D32; }
+  .sh-metric-row .value.negative { color: var(--rojo); }
+  .sh-chart-placeholder { background: var(--beige); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--gris); font-size: 13px; }
+  .sh-growth-bar { height: 8px; background: var(--beige); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .sh-growth-fill { height: 100%; background: var(--verde); border-radius: 4px; transition: width 0.5s ease; }
+
+  /* === PERFIL === */
+  .sh-profile-header { background: var(--verde); padding: 32px 24px; text-align: center; color: white; }
+  .sh-profile-avatar { width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 12px; border: 3px solid var(--dorado); }
+  .sh-profile-header h3 { font-size: 20px; font-weight: 800; }
+  .sh-profile-header p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+  .sh-profile-body { padding: 20px; }
+  .sh-profile-menu { display: flex; flex-direction: column; gap: 8px; }
+  .sh-menu-item { background: white; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.2s; }
+  .sh-menu-item:hover { transform: translateX(4px); }
+  .sh-menu-icon { width: 40px; height: 40px; background: var(--beige); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .sh-menu-text { flex: 1; }
+  .sh-menu-text h4 { font-size: 14px; font-weight: 700; color: var(--marron); }
+  .sh-menu-text p { font-size: 12px; color: var(--gris); }
+  .sh-menu-arrow { font-size: 18px; color: var(--gris); }
+
+  /* === COMPARADOR === */
+  .sh-compare-container { background: white; border-radius: 18px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+  .sh-compare-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .sh-compare-row:last-child { margin-bottom: 0; }
+  .sh-compare-label { font-size: 12px; font-weight: 700; color: var(--marron); width: 80px; }
+  .sh-compare-bar-container { flex: 1; height: 32px; background: var(--beige); border-radius: 8px; overflow: hidden; position: relative; }
+  .sh-compare-bar { height: 100%; border-radius: 8px; display: flex; align-items: center; padding: 0 10px; font-size: 11px; font-weight: 700; color: white; transition: width 0.5s ease; }
+  .sh-compare-bar.sh-red { background: var(--rojo); }
+  .sh-compare-bar.sh-green { background: var(--verde); }
+  .sh-compare-value { font-size: 13px; font-weight: 700; color: var(--marron); width: 60px; text-align: right; }
+
+  .sh-hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="sh-app">
+  <div class="sh-toast" id="toast"></div>
+
+  <!-- ===== ONBOARDING ===== -->
+  <div class="sh-screen active" id="screen-onboarding">
+    <div class="sh-onboarding">
+      <div class="logo-big">🌿</div>
+      <h1>Segunda Hoja</h1>
+      <p>Gestión circular del papel corporativo con inteligencia artificial. Convierte tus residuos en impacto medible.</p>
+      <div class="sh-dots"><div class="sh-dot active"></div><div class="sh-dot"></div><div class="sh-dot"></div></div>
+      <button class="sh-btn-white" onclick="goTo('screen-landing')">Comenzar</button>
+      <button class="sh-btn-transparent" onclick="goTo('screen-landing')">Saltar tutorial</button>
+    </div>
+  </div>
+
+  <!-- ===== LANDING ===== -->
+  <div class="sh-screen" id="screen-landing">
+    <div class="sh-landing-hero">
+      <div class="sh-landing-logo">🌿</div>
+      <h1>Cada hoja tiene una segunda oportunidad</h1>
+      <p>Gestión circular del papel corporativo con inteligencia artificial</p>
+    </div>
+    <div class="sh-landing-stats">
+      <div class="sh-stat-card"><span class="num">2.4K</span><span class="lbl">Cuadernos<br>donados</span></div>
+      <div class="sh-stat-card"><span class="num">480</span><span class="lbl">Estudiantes<br>impactados</span></div>
+      <div class="sh-stat-card"><span class="num">24t</span><span class="lbl">CO₂<br>evitado</span></div>
+    </div>
+    <div class="sh-landing-body">
+      <h3 class="sh-section-title">¿Cómo funciona?</h3>
+      <div class="sh-feature-list">
+        <div class="sh-feature-item"><div class="sh-feature-icon">🤖</div><div class="sh-feature-text"><h4>La IA predice tu recolección</h4><p>El agente aprende de tu historial y programa la recolección antes de que lo pidas.</p></div></div>
+        <div class="sh-feature-item"><div class="sh-feature-icon">🚛</div><div class="sh-feature-text"><h4>Recogemos y clasificamos</h4><p>Ruta optimizada. Papel bueno → cuadernos. Papel dañado → reciclaje.</p></div></div>
+        <div class="sh-feature-item"><div class="sh-feature-icon">📜</div><div class="sh-feature-text"><h4>Certificado ESG automático</h4><p>Reporte mensual de impacto: toneladas, CO₂ evitado, cuadernos donados.</p></div></div>
+      </div>
+
+      <h3 class="sh-section-title">Simula tu cotización</h3>
+      <p class="sh-section-subtitle">Ajusta el número de empleados y descubre cuánto ahorrarías</p>
+      <div class="sh-sim-container">
+        <label class="sh-sim-label">Número de empleados</label>
+        <div class="sh-slider-container">
+          <input type="range" class="sh-slider" id="simSlider" min="10" max="1000" value="150" step="10" oninput="updateSim()">
+          <div class="sh-slider-value" id="simValue">150</div>
+          <div class="sh-slider-desc">personas en tu organización</div>
+        </div>
+        <div class="sh-sim-result">
+          <div class="price" id="simPrice">$1.000.000</div>
+          <div class="period">mensuales · Plan Pro</div>
+          <div class="saving" id="simSaving">💡 Ahorras $500K vs destrucción tradicional</div>
+        </div>
+      </div>
+
+      <h3 class="sh-section-title">Compara el impacto</h3>
+      <div class="sh-compare-container">
+        <div class="sh-compare-row">
+          <div class="sh-compare-label">CO₂/mes</div>
+          <div class="sh-compare-bar-container">
+            <div class="sh-compare-bar sh-red" style="width:80%">Sin Segunda Hoja</div>
+          </div>
+          <div class="sh-compare-value">2.4t</div>
+        </div>
+        <div class="sh-compare-row">
+          <div class="sh-compare-label">CO₂/mes</div>
+          <div class="sh-compare-bar-container">
+            <div class="sh-compare-bar sh-green" style="width:35%">Con Segunda Hoja</div>
+          </div>
+          <div class="sh-compare-value">0.8t</div>
+        </div>
+        <div class="sh-compare-row">
+          <div class="sh-compare-label">Costo/mes</div>
+          <div class="sh-compare-bar-container">
+            <div class="sh-compare-bar sh-red" style="width:90%">Destrucción tradicional</div>
+          </div>
+          <div class="sh-compare-value">$1.5M</div>
+        </div>
+        <div class="sh-compare-row">
+          <div class="sh-compare-label">Costo/mes</div>
+          <div class="sh-compare-bar-container">
+            <div class="sh-compare-bar sh-green" style="width:60%">Segunda Hoja</div>
+          </div>
+          <div class="sh-compare-value">$1M</div>
+        </div>
+      </div>
+
+      <button class="sh-btn-primary" onclick="goTo('screen-register')">🚀 Quiero ser cliente piloto</button>
+      <button class="sh-btn-secondary" onclick="goTo('screen-dashboard')">👀 Ver demo del dashboard</button>
+    </div>
+  </div>
+
+  <!-- ===== REGISTRO ===== -->
+  <div class="sh-screen" id="screen-register">
+    <div class="sh-reg-header">
+      <button class="sh-back-btn" onclick="goTo('screen-landing')">← Volver</button>
+      <h2>Únete al piloto</h2>
+      <p>El agente de IA comenzará a aprender de tu organización.</p>
+    </div>
+    <div class="sh-reg-body">
+      <div class="sh-form-group"><label>Nombre de la empresa / universidad</label><input type="text" placeholder="Ej: Universidad Nacional de Colombia" id="regName"></div>
+      <div class="sh-form-group"><label>Tipo de organización</label><select id="regType"><option value="">Selecciona...</option><option value="empresa">Empresa privada</option><option value="universidad">Universidad</option><option value="publica">Entidad pública</option></select></div>
+      <div class="sh-form-group"><label>Número aproximado de empleados</label><select id="regSize"><option value="">Selecciona...</option><option value="small">10 - 50</option><option value="medium">50 - 200</option><option value="large">200 - 1000</option><option value="xlarge">1000+</option></select></div>
+      <label style="font-size:11px; font-weight:700; color:var(--marron); margin-bottom:10px; display:block; text-transform:uppercase; letter-spacing:0.5px;">Plan de suscripción</label>
+      <div class="sh-plan-selector">
+        <div class="sh-plan-option" onclick="selectPlan(this)"><span class="plan-name">BÁSICO</span><span class="plan-price">$600K</span><span class="plan-desc">/mes<br>10-50 personas</span></div>
+        <div class="sh-plan-option selected" onclick="selectPlan(this)"><span class="plan-name">PRO</span><span class="plan-price">$1M</span><span class="plan-desc">/mes<br>50-200 personas</span></div>
+        <div class="sh-plan-option" onclick="selectPlan(this)"><span class="plan-name">ENTERPRISE</span><span class="plan-price">$2M</span><span class="plan-desc">/mes<br>200+ personas</span></div>
+      </div>
+      <div class="sh-form-group"><label>Correo electrónico</label><input type="email" placeholder="tucorreo@empresa.com" id="regEmail"></div>
+      <div class="sh-form-group"><label>Teléfono de contacto</label><input type="tel" placeholder="300 000 0000" id="regPhone"></div>
+      <button class="sh-btn-primary" onclick="completeRegister()">📋 Enviar solicitud de piloto</button>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="sh-screen" id="screen-dashboard">
+    <div class="sh-dash-header">
+      <div class="sh-dash-top"><h2>Dashboard</h2><div class="sh-dash-avatar">🏢</div></div>
+      <div class="sh-dash-welcome">Hola, <strong>Universidad Nacional</strong><br><span style="font-size:12px; opacity:0.85;">Plan Pro · $1.000.000/mes</span></div>
+    </div>
+    <div class="sh-dash-body">
+      <div class="sh-next-pickup">
+        <div class="label">📅 Próxima recolección programada</div>
+        <div class="date">Viernes, 8 de agosto · 9:00 AM</div>
+        <div class="sub">Edificio de Administración · 1.2 toneladas estimadas</div>
+        <div class="sh-ia-badge">🤖 Programado por el agente de predicción</div>
+      </div>
+      <h3 class="sh-section-title">Tu impacto este mes</h3>
+      <div class="sh-impact-grid">
+        <div class="sh-impact-card"><div class="icon">📄</div><div class="value">1.2</div><div class="unit">toneladas</div><div class="desc">Papel gestionado</div></div>
+        <div class="sh-impact-card"><div class="icon">🌱</div><div class="value">2.4</div><div class="unit">toneladas</div><div class="desc">CO₂ evitado</div></div>
+        <div class="sh-impact-card"><div class="icon">📒</div><div class="value">48</div><div class="unit">cuadernos</div><div class="desc">Donados gracias a ti</div></div>
+        <div class="sh-impact-card"><div class="icon">👧</div><div class="value">12</div><div class="unit">estudiantes</div><div class="desc">Impactados este mes</div></div>
+        <div class="sh-impact-card full-width"><div class="left"><div class="icon">♻️</div><div><div class="value" style="font-size:18px;">78%</div><div class="desc">Papel reutilizado (resto reciclado)</div></div></div></div>
+      </div>
+      <div class="sh-cert-card">
+        <h4>📜 Certificado ESG — Julio 2026</h4>
+        <p>Reporte de sostenibilidad verificable listo para presentar a inversionistas y entes de control.</p>
+        <button class="sh-btn-small" onclick="showToast('📥 Certificado descargado: SegundaHoja_UNAL_Julio2026.pdf')">⬇ Descargar</button>
+      </div>
+      <h3 class="sh-history-title">Historial de recolecciones</h3>
+      <div class="sh-history-list">
+        <div class="sh-history-item"><div class="info"><h5>Recolección programada</h5><span>4 de ago · 1.2 t · Edificio Admin</span></div><div class="sh-badge-green">✓ Completada</div></div>
+        <div class="sh-history-item"><div class="info"><h5>Recolección programada</h5><span>28 de jul · 0.9 t · Biblioteca</span></div><div class="sh-badge-green">✓ Completada</div></div>
+        <div class="sh-history-item"><div class="info"><h5>Recolección programada</h5><span>21 de jul · 1.1 t · Edificio Admin</span></div><div class="sh-badge-green">✓ Completada</div></div>
+        <div class="sh-history-item"><div class="info"><h5>Recolección programada</h5><span>14 de jul · 0.8 t · Fac. Economía</span></div><div class="sh-badge-blue">🔄 En proceso</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ALIADOS ===== -->
+  <div class="sh-screen" id="screen-aliados">
+    <div class="sh-reg-header">
+      <button class="sh-back-btn" onclick="goTo('screen-landing')">← Volver</button>
+      <h2>Nuestra red de aliados</h2>
+      <p>Talleres, recicladores e industria papelera conectados por IA.</p>
+    </div>
+    <div class="sh-reg-body">
+      <h3 class="sh-section-title">Talleres de encuadernación</h3>
+      <div class="sh-aliados-list">
+        <div class="sh-aliado-card"><div class="sh-aliado-avatar">📒</div><div class="sh-aliado-info"><h4>Taller El Bosque</h4><p>Cooperativa familiar en Kennedy. 5 años produciendo cuadernos artesanales.</p><span class="tag">200 cuadernos/mes</span></div></div>
+        <div class="sh-aliado-card"><div class="sh-aliado-avatar">📔</div><div class="sh-aliado-info"><h4>Encuadernaciones Doña Rosa</h4><p>Negocio familiar en Bosa. Emplea a 8 mujeres cabeza de hogar.</p><span class="tag">150 cuadernos/mes</span></div></div>
+        <div class="sh-aliado-card"><div class="sh-aliado-avatar">📓</div><div class="sh-aliado-info"><h4>Cooperativa EcoLápiz</h4><p>Taller comunitario en Ciudad Bolívar. Enseña oficio a jóvenes.</p><span class="tag">100 cuadernos/mes</span></div></div>
+      </div>
+      <h3 class="sh-section-title" style="margin-top:24px;">Recicladores de oficio</h3>
+      <div class="sh-aliados-list">
+        <div class="sh-aliado-card"><div class="sh-aliado-avatar">♻️</div><div class="sh-aliado-info"><h4>Asociación de Recicladores Puente Aranda</h4><p>15 recicladores formalizados. Rutas asignadas equitativamente por el agente.</p><span class="tag">Precio fijo garantizado</span></div></div>
+      </div>
+      <h3 class="sh-section-title" style="margin-top:24px;">Industria papelera</h3>
+      <div class="sh-aliados-list">
+        <div class="sh-aliado-card"><div class="sh-aliado-avatar">🏭</div><div class="sh-aliado-info"><h4>Planta Papelera del Sur</h4><p>Compra fibra certificada a precio mínimo garantizado. Contrato a 12 meses.</p><span class="tag">450K/tonelada</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHAT ===== -->
+  <div class="sh-screen" id="screen-chat" style="display:none; position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:420px; height:100vh; background:var(--crema); z-index:200; flex-direction:column;">
+    <div class="sh-chat-header"><div class="sh-chat-avatar">🌿</div><div class="sh-chat-info"><h3>Segunda Hoja</h3><p>Agente de IA — Gestión Circular</p></div><button style="background:none; border:none; color:white; font-size:20px; cursor:pointer; margin-left:auto;" onclick="closeChat()">✕</button></div>
+    <div class="sh-chat-messages" id="chatMessages"><div class="sh-message sh-message-bot">¡Hola! Soy el <strong>agente de IA</strong> de Segunda Hoja 🌿<br><br>¿En qué puedo ayudarte hoy?</div></div>
+    <div class="sh-chat-quick" id="chatQuick"><button class="sh-chat-quick-btn" onclick="sendQuick('¿Qué es Segunda Hoja?')">¿Qué es?</button><button class="sh-chat-quick-btn" onclick="sendQuick('Precios')">Precios</button><button class="sh-chat-quick-btn" onclick="sendQuick('Agentes de IA')">4 agentes</button><button class="sh-chat-quick-btn" onclick="sendQuick('Impacto ambiental')">Impacto</button></div>
+    <div class="sh-chat-input-area"><input type="text" class="sh-chat-input" id="chatInput" placeholder="Escribe tu pregunta..." onkeypress="if(event.key==='Enter') sendMessage()"><button class="sh-send-btn" onclick="sendMessage()">➤</button></div>
+  </div>
+
+  <!-- ===== INVERSOR ===== -->
+  <div class="sh-screen" id="screen-inversor">
+    <div class="sh-reg-header">
+      <button class="sh-back-btn" onclick="goTo('screen-landing')">← Volver</button>
+      <h2>Panel de Inversor</h2>
+      <p>Métricas clave del negocio · Actualizado: Julio 2026</p>
+    </div>
+    <div class="sh-reg-body">
+      <div class="sh-invest-card">
+        <h4>📊 Métricas financieras</h4>
+        <div class="sh-metric-row"><span class="label">MRR (Ingreso recurrente)</span><span class="value positive">$31.6M/mes</span></div>
+        <div class="sh-metric-row"><span class="label">Clientes activos</span><span class="value">28</span></div>
+        <div class="sh-metric-row"><span class="label">Churn rate</span><span class="value positive">2%</span></div>
+        <div class="sh-metric-row"><span class="label">LTV estimado</span><span class="value">$24M/cliente</span></div>
+        <div class="sh-metric-row"><span class="label">CAC</span><span class="value">$800K</span></div>
+        <div class="sh-metric-row"><span class="label">Margen operativo</span><span class="value positive">30.4%</span></div>
+      </div>
+
+      <div class="sh-invest-card">
+        <h4>📈 Crecimiento mensual</h4>
+        <div class="sh-chart-placeholder">📈 Gráfico: Ingresos mensuales Año 1<br><br><strong>Ene:</strong> $12M → <strong>Jul:</strong> $31.6M<br>Tendencia: +163% en 7 meses</div>
+      </div>
+
+      <div class="sh-invest-card">
+        <h4>🎯 Proyección de escalamiento</h4>
+        <div class="sh-metric-row"><span class="label">Año 1 — Bogotá</span><span class="value">28 clientes · 10t/mes</span></div>
+        <div class="sh-growth-bar"><div class="sh-growth-fill" style="width:30%"></div></div>
+        <div class="sh-metric-row" style="margin-top:12px;"><span class="label">Año 2 — Bogotá</span><span class="value">60 clientes · 25t/mes</span></div>
+        <div class="sh-growth-bar"><div class="sh-growth-fill" style="width:55%"></div></div>
+        <div class="sh-metric-row" style="margin-top:12px;"><span class="label">Año 3 — 3 ciudades</span><span class="value">120 clientes · 50t/mes</span></div>
+        <div class="sh-growth-bar"><div class="sh-growth-fill" style="width:85%"></div></div>
+      </div>
+
+      <div class="sh-invest-card">
+        <h4>💰 Estructura de la ronda</h4>
+        <div class="sh-metric-row"><span class="label">Inversión inicial</span><span class="value">$150M COP</span></div>
+        <div class="sh-metric-row"><span class="label">Fondo Emprender</span><span class="value">$70M (47%)</span></div>
+        <div class="sh-metric-row"><span class="label">Bancoldex</span><span class="value">$50M (33%)</span></div>
+        <div class="sh-metric-row"><span class="label">Capital propio</span><span class="value">$30M (20%)</span></div>
+        <div class="sh-metric-row" style="border-top:2px solid var(--beige); margin-top:8px; padding-top:12px;"><span class="label">Punto de equilibrio</span><span class="value positive">22 clientes</span></div>
+        <div class="sh-metric-row"><span class="label">Runway</span><span class="value positive">18 meses</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PERFIL ===== -->
+  <div class="sh-screen" id="screen-perfil">
+    <div class="sh-profile-header">
+      <div class="sh-profile-avatar">🏢</div>
+      <h3>Universidad Nacional de Colombia</h3>
+      <p>Plan Pro · Cliente desde marzo 2026</p>
+    </div>
+    <div class="sh-profile-body">
+      <div class="sh-profile-menu">
+        <div class="sh-menu-item" onclick="showToast('📋 Datos de la organización')">
+          <div class="sh-menu-icon">🏢</div>
+          <div class="sh-menu-text"><h4>Mi organización</h4><p>Editar datos de la empresa</p></div>
+          <div class="sh-menu-arrow">›</div>
+        </div>
+        <div class="sh-menu-item" onclick="showToast('📅 Próximas recolecciones')">
+          <div class="sh-menu-icon">📅</div>
+          <div class="sh-menu-text"><h4>Calendario de recolecciones</h4><p>Ver y modificar fechas</p></div>
+          <div class="sh-menu-arrow">›</div>
+        </div>
+        <div class="sh-menu-item" onclick="showToast('📜 Historial de certificados')">
+          <div class="sh-menu-icon">📜</div>
+          <div class="sh-menu-text"><h4>Certificados ESG</h4><p>Descargar reportes mensuales</p></div>
+          <div class="sh-menu-arrow">›</div>
+        </div>
+        <div class="sh-menu-item" onclick="showToast('💳 Métodos de pago')">
+          <div class="sh-menu-icon">💳</div>
+          <div class="sh-menu-text"><h4>Pagos y facturación</h4><p>Ver facturas y actualizar método</p></div>
+          <div class="sh-menu-arrow">›</div>
+        </div>
+        <div class="sh-menu-item" onclick="showToast('🔔 Preferencias de notificación')">
+          <div class="sh-menu-icon">🔔</div>
+          <div class="sh-menu-text"><h4>Notificaciones</h4><p>Recordatorios y alertas</p></div>
+          <div class="sh-menu-arrow">›</div>
+        </div>
+        <div class="sh-menu-item" onclick="showToast('⚙️ Configuración general')">
+          <div class="sh-menu-icon">⚙️</div>
+          <div class="sh-menu-text"><h4>Configuración</h4><p>Idioma, seguridad, ayuda</p></div>
+          <div class="sh-menu-arrow">›</div>
+        </div>
+        <div class="sh-menu-item" onclick="showToast('🚪 Sesión cerrada')">
+          <div class="sh-menu-icon" style="background:rgba(229,57,53,0.1);">🚪</div>
+          <div class="sh-menu-text"><h4 style="color:var(--rojo)">Cerrar sesión</h4></div>
+          <div class="sh-menu-arrow">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NAV BAR ===== -->
+  <div class="sh-nav-bar" id="mainNav">
+    <button class="sh-nav-item active" onclick="goTo('screen-landing')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button class="sh-nav-item" onclick="goTo('screen-dashboard')"><span class="nav-icon">📊</span>Impacto</button>
+    <button class="sh-nav-item" onclick="openChat()"><span class="nav-icon">💬</span>Chat IA</button>
+    <button class="sh-nav-item" onclick="goTo('screen-perfil')"><span class="nav-icon">👤</span>Perfil</button>
+  </div>
+</div>
+
+<script>
+  // ===== NAVEGACIÓN =====
+  function goTo(id) {
+    document.querySelectorAll('.sh-screen').forEach(s => {
+      if (s.id !== 'screen-chat') s.classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+    updateNav(id);
+  }
+
+  function updateNav(screenId) {
+    const navItems = document.querySelectorAll('.sh-nav-item');
+    navItems.forEach(n => n.classList.remove('active'));
+    if (screenId === 'screen-landing' || screenId === 'screen-aliados' || screenId === 'screen-inversor') navItems[0].classList.add('active');
+    if (screenId === 'screen-dashboard') navItems[1].classList.add('active');
+    if (screenId === 'screen-perfil') navItems[3].classList.add('active');
+  }
+
+  // ===== SIMULADOR =====
+  function updateSim() {
+    const val = parseInt(document.getElementById('simSlider').value);
+    document.getElementById('simValue').textContent = val;
+    let price, plan, saving;
+    if (val <= 50) { price = '$600.000'; plan = 'Básico'; saving = '$900K'; }
+    else if (val <= 200) { price = '$1.000.000'; plan = 'Pro'; saving = '$500K'; }
+    else { price = '$2.000.000'; plan = 'Enterprise'; saving = '$1M'; }
+    document.getElementById('simPrice').textContent = price;
+    document.querySelector('.sh-sim-result .period').textContent = 'mensuales · Plan ' + plan;
+    document.getElementById('simSaving').textContent = '💡 Ahorras ' + saving + ' vs destrucción tradicional';
+  }
+
+  // ===== REGISTRO =====
+  function selectPlan(el) {
+    document.querySelectorAll('.sh-plan-option').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function completeRegister() {
+    const name = document.getElementById('regName').value;
+    if (!name) { showToast('⚠️ Completa el nombre de tu organización'); return; }
+    showToast('✅ ¡Solicitud enviada! Te contactaremos en 24h');
+    setTimeout(() => goTo('screen-dashboard'), 1800);
+  }
+
+  // ===== CHAT =====
+  function openChat() {
+    const chat = document.getElementById('screen-chat');
+    chat.style.display = 'flex';
+    chat.classList.add('active');
+  }
+  function closeChat() {
+    const chat = document.getElementById('screen-chat');
+    chat.style.display = 'none';
+    chat.classList.remove('active');
+  }
+
+  const knowledge = [
+    { keywords: ['que es','segunda hoja','empresa'], response: '🌿 <strong>Segunda Hoja</strong> gestiona papel corporativo con IA. Conectamos empresas con recicladores y colegios rurales. <em>"Cada hoja tiene una segunda oportunidad."</em>' },
+    { keywords: ['precio','cuanto cuesta','suscripcion'], response: '💰 Planes: <strong>Básico $600K</strong> (10-50 personas) · <strong>Pro $1M</strong> (50-200) · <strong>Enterprise $2M</strong> (200+). Incluye recolección, clasificación y certificado ESG.' },
+    { keywords: ['agente','agentes','ia','4 agentes'], response: '🤖 4 agentes: <strong>Predicción</strong> (programa recolecciones) · <strong>Logística</strong> (optimiza rutas) · <strong>Emparejamiento</strong> (decide destino) · <strong>Financiero</strong> (certificados ESG). <em>La IA orquesta; el humano clasifica.</em>' },
+    { keywords: ['impacto','ambiental','co2','cuadernos'], response: '🌍 Año 1: <strong>2.400 cuadernos</strong> donados · <strong>480 estudiantes</strong> · <strong>15 recicladores</strong> formalizados · <strong>24t CO₂</strong> evitado. Todo medible y verificable.' },
+    { keywords: ['certificado','esg','trazabilidad'], response: '📜 Certificado mensual con: toneladas gestionadas, CO₂ evitado, cuadernos donados. Para papel confidencial: destrucción certificada cumpliendo <strong>Ley 1581 de 2012</strong>.' },
+    { keywords: ['hola','buenos dias','hey'], response: '¡Hola! 👋 Soy el agente de IA de Segunda Hoja. Puedo ayudarte con precios, funcionamiento, impacto ambiental o cómo unirte al piloto. ¿Qué te interesa?' }
+  ];
+  function findResponse(text) {
+    const lower = text.toLowerCase();
+    for (const item of knowledge) {
+      for (const kw of item.keywords) { if (lower.includes(kw)) return item.response; }
+    }
+    return 'Puedo ayudarte con: qué es Segunda Hoja, precios, los 4 agentes de IA, impacto ambiental o cómo ser parte del piloto. ¿Qué necesitas? 🤔';
+  }
+  function addChatMsg(text, isUser) {
+    const div = document.createElement('div');
+    div.className = 'sh-message ' + (isUser ? 'sh-message-user' : 'sh-message-bot');
+    div.innerHTML = text;
+    document.getElementById('chatMessages').appendChild(div);
+    document.getElementById('chatMessages').scrollTop = 99999;
+  }
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'sh-typing'; div.id = 'typingInd';
+    div.innerHTML = '<div class="sh-typing-dot"></div><div class="sh-typing-dot"></div><div class="sh-typing-dot"></div>';
+    document.getElementById('chatMessages').appendChild(div);
+    document.getElementById('chatMessages').scrollTop = 99999;
+  }
+  function hideTyping() { const el = document.getElementById('typingInd'); if (el) el.remove(); }
+  function sendMessage() {
+    const text = document.getElementById('chatInput').value.trim();
+    if (!text) return;
+    addChatMsg(text, true);
+    document.getElementById('chatInput').value = '';
+    showTyping();
+    setTimeout(() => { hideTyping(); addChatMsg(findResponse(text), false); }, 700 + Math.random() * 500);
+  }
+  function sendQuick(text) {
+    addChatMsg(text, true);
+    showTyping();
+    setTimeout(() => { hideTyping(); addChatMsg(findResponse(text), false); }, 700 + Math.random() * 500);
+  }
+
+  // ===== TOAST =====
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ===== SERVICE WORKER (PWA) =====
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('data:text/javascript,' + encodeURIComponent(`
+      self.addEventListener('install', e => self.skipWaiting());
+      self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+      self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+    `)).catch(() => {});
+  }
+</script>
+</body>
+</html>
